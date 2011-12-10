@@ -2644,6 +2644,7 @@ int testmgr_crypto_proc_init(void)
 #endif
 	return 0;
 }
+EXPORT_SYMBOL_GPL(testmgr_crypto_proc_init);
 
 #endif /* CONFIG_CRYPTO_MANAGER_TESTS */
 
