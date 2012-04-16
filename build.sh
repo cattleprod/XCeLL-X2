@@ -7,9 +7,9 @@ KERNEL_PATH=/home/nightwatch/android/kernel/XCeLL-X2
 # TODO: Set toolchain and root filesystem path
 TAR_NAME=zImage.tar
 
-TOOLCHAIN="/usr/bin/arm-linux-gnueabi-"
+TOOLCHAIN="/home/nightwatch/android/toolchain/4.7/android-toolchain-eabi/bin/arm-eabi-"
 # TOOLCHAIN="/home/neophyte-x360/toolchain/bin/arm-none-eabi-"
-ROOTFS_PATH="/home/nightwatch/android/initramfs/ics-miui/"
+ROOTFS_PATH="/home/nightwatch/android/initramfs/ics-miui-initramfs/"
 
 
 
