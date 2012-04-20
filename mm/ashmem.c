@@ -751,8 +751,7 @@ static long ashmem_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		}
 		break;
 	case ASHMEM_CACHE_FLUSH_RANGE:
-	case ASHMEM_CACHE_CLEAN_RANGE:
-		ret = ashmem_flush_cache_range(asma, cmd);
+	ret = ashmem_flush_cache_range(asma);
 		break;
 	}
 
