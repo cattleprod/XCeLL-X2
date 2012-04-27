@@ -26,6 +26,8 @@ cp drivers/samsung/j4fs/j4fs.ko $ROOTFS_PATH/lib/modules/
 cp drivers/samsung/fm_si4709/Si4709_driver.ko $ROOTFS_PATH/lib/modules/
 cp drivers/scsi/scsi_wait_scan.ko $ROOTFS_PATH/lib/modules/
 cp drivers/staging/android/logger.ko $ROOTFS_PATH/lib/modules/
+cp fs/cifs/cifs.ko $ROOTFS_PATH/lib/modules/
+cp fs/fuse/fuse.ko $ROOTFS_PATH/lib/modules/
 
 make -j4 -C $KERNEL_PATH ARCH=arm CROSS_COMPILE=$TOOLCHAIN || exit -1
 
