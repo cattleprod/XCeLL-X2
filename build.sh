@@ -9,9 +9,9 @@ TAR_NAME=zImage.tar
 
 TOOLCHAIN="/home/nightwatch/android/toolchain/4.7/android-toolchain-eabi/bin/arm-eabi-"
 # TOOLCHAIN="/home/neophyte-x360/toolchain/bin/arm-none-eabi-"
-ROOTFS_PATH="/home/nightwatch/android/initramfs/ics-miui-initramfs/"
+ROOTFS_PATH="/home/nightwatch/android/initramfs/out/"
 
-
+export USE_SEC_FIPS_MODE=true
 
 echo "Cleaning latest build"
 make ARCH=arm CROSS_COMPILE=$TOOLCHAIN -j`grep 'processor' /proc/cpuinfo | wc -l` clean
