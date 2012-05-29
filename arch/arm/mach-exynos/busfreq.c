@@ -93,21 +93,20 @@ struct busfreq_table {
 };
 
 static struct busfreq_table exynos4_busfreq_table[] = {
-	{LV_0, 400000, 1100000, 0, 0}, /* MIF : 400MHz INT : 200MHz */
-	{LV_1, 267000, 1000000, 0, 0}, /* MIF : 267MHz INT : 200MHz */
-	{LV_2, 133000, 950000, 0, 0},  /* MIF : 133MHz INT : 133MHz */
-	{LV_3, 100000, 950000, 0, 0},  /* MIF : 100MHz INT : 100MHz */ 
+	{LV_0, 400000, 1100000, 0, 0},
+	{LV_1, 267000, 1000000, 0, 0},
+	{LV_2, 133000, 950000, 0, 0},
+	{LV_2, 100000, 950000, 0, 0},
 	{0, 0, 0, 0, 0},
 };
 
 #define ASV_GROUP	5
 static unsigned int exynos4_asv_volt[ASV_GROUP][LV_END] = {
-	/* 400      267      133     100 */
-	{1100000, 1000000, 950000, 950000}, /* ASV0 */
-	{1050000, 950000,  900000, 900000}, /* ASV1 */
-	{1050000, 950000,  900000, 900000}, /* ASV2 */
-	{1050000, 950000,  900000, 900000}, /* ASV3 */
-	{1050000, 950000,  900000, 900000}, /* ASV4 */
+	{1100000, 1050000, 1000000, 1000000},
+	{1100000, 1025000, 1000000, 1000000},
+	{1100000, 1000000, 1000000, 1000000},
+	{1075000, 975000, 975000, 975000},
+	{1050000, 950000, 950000, 950000},
 };
 
 static unsigned int clkdiv_dmc0[LV_END][8] = {
@@ -122,10 +121,10 @@ static unsigned int clkdiv_dmc0[LV_END][8] = {
 
 	/* DMC L1: 266.7MHz */
 	{ 4, 2, 1, 2, 1, 1, 3, 1 },
-	
+
 	/* DMC L2: 133MHz */
 	{ 5, 2, 1, 5, 1, 1, 3, 1 },
-
+	
 	/* DMC L3: 100MHz */
 	{ 5, 2, 1, 5, 1, 1, 3, 1 },
 };
@@ -138,7 +137,7 @@ static unsigned int clkdiv_top[LV_END][5] = {
 
 	/* ACLK200 L0: 200MHz */
 	{ 3, 7, 4, 5, 1 },
-	
+
 	/* ACLK200 L1: 160MHz */
 	{ 4, 7, 5, 6, 1 },
 
@@ -156,16 +155,16 @@ static unsigned int clkdiv_lr_bus[LV_END][2] = {
 	 */
 
 	/* ACLK_GDL/R L0: 200MHz */
-	{3, 1},
+	{ 3, 1 },
 
 	/* ACLK_GDL/R L1: 160MHz */
-	{4, 1},
+	{ 4, 1 },
 
 	/* ACLK_GDL/R L2: 133MHz */
-	{5, 1},
-
+	{ 5, 1 },
+	
 	/* ACLK_GDL/R L3: 100MHz */
-	{5, 1},
+	{ 5, 1 },
 };
 
 static unsigned int clkdiv_ip_bus[LV_END][3] = {
@@ -174,17 +173,20 @@ static unsigned int clkdiv_ip_bus[LV_END][3] = {
 	 * { DIV_MFC, DIV_G2D, DIV_FIMC }
 	 */
 
-	/* SCLK_MFC: 200MHz */
-	{3, 3, 4},
+	/* L0: MFC 200MHz G2D 266MHz FIMC 160MHz */
+	{ 3, 2, 4 },
 
-	/* SCLK_MFC: 160MHz */
-	{4, 4, 5},
+	/* L1: MFC 200MHz G2D 160MHz FIMC 133MHz */
+	/* { 4, 4, 5 }, */
+	{ 3, 4, 5 },
 
-	/* SCLK_MFC: 133MHz */
-	{5, 5, 5},
-
-	/* SCLK_MFC: 100MHz */
-	{5, 5, 5},
+	/* L2: MFC 200MHz G2D 133MHz FIMC 100MHz */
+	/* { 5, 5, 7 }, */
+	{ 3, 5, 7 },
+	
+	/* L3: MFC 200MHz G2D 100MHz FIMC 100MHz */
+	/* { 5, 5, 7 }, */
+	{ 3, 5, 7 },
 };
 
 static void exynos4_set_busfreq(unsigned int div_index)
@@ -740,13 +742,15 @@ static int __init busfreq_mon_init(void)
 			EXYNOS4_CLKDIV_TOP_ACLK100_MASK |
 			EXYNOS4_CLKDIV_TOP_ACLK160_MASK |
 			EXYNOS4_CLKDIV_TOP_ACLK133_MASK |
+			EXYNOS4_CLKDIV_TOP_ACLK100_MASK |
 			EXYNOS4_CLKDIV_TOP_ONENAND_MASK);
 
 		tmp |= ((clkdiv_top[i][0] << EXYNOS4_CLKDIV_TOP_ACLK200_SHIFT) |
 			(clkdiv_top[i][1] << EXYNOS4_CLKDIV_TOP_ACLK100_SHIFT) |
 			(clkdiv_top[i][2] << EXYNOS4_CLKDIV_TOP_ACLK160_SHIFT) |
 			(clkdiv_top[i][3] << EXYNOS4_CLKDIV_TOP_ACLK133_SHIFT) |
-			(clkdiv_top[i][4] << EXYNOS4_CLKDIV_TOP_ONENAND_SHIFT));
+			(clkdiv_top[i][4] << EXYNOS4_CLKDIV_TOP_ACLK100_SHIFT) |
+			(clkdiv_top[i][5] << EXYNOS4_CLKDIV_TOP_ONENAND_SHIFT));
 
 		exynos4_busfreq_table[i].clk_topdiv = tmp;
 	}
