@@ -428,7 +428,6 @@ void touchkey_work_func(struct work_struct *p)
 	int retry = 10;
 	int keycode_type = 0;
 	int pressed;
-	int status;
 
 	set_touchkey_debug('a');
 
@@ -473,8 +472,7 @@ void touchkey_work_func(struct work_struct *p)
 	/* we have timed out or the lights should be on */
 	if (led_timer.expires > jiffies || led_timeout != BL_ALWAYS_OFF) {
 		change_touch_key_led_voltage(led_brightness);
-		status = 1;
-		i2c_touchkey_write((u8 *)&status, 1); /* turn on */
+		enable_touchkey_backlights();
 	}
 
 	/* restart the timer */
@@ -508,20 +506,18 @@ static void reset_breathing(void)
 
 static void led_fadeout(void)
 {
-	int i, status = 2;
+	int i;
 
 	for (i = led_brightness; i >= BREATHING_MIN_VOLT; i -= 50) {
 		change_touch_key_led_voltage(i);
 		msleep(50);
 	}
 
-	i2c_touchkey_write((u8 *)&status, 1);
+	disable_touchkey_backlights();
 }
 
 static void bl_off(struct work_struct *bl_off_work)
 {
-	int status;
-
 	/* do nothing if there is an active notification */
 	if (led_on || !touchkey_enable)
 		return;
@@ -530,8 +526,7 @@ static void bl_off(struct work_struct *bl_off_work)
 	if (fade_out) {
 		led_fadeout();
 	} else {
-		status = 2;
-		i2c_touchkey_write((u8 *)&status, 1);
+		disable_touchkey_backlights();
 	}
 
 	return;
@@ -545,8 +540,6 @@ static void handle_led_timeout(unsigned long data)
 
 static void notification_off(struct work_struct *notification_off_work)
 {
-	int status;
-
 	/* do nothing if there is no active notification */
 	if (!led_on || !touchkey_enable)
 		return;
@@ -557,8 +550,7 @@ static void notification_off(struct work_struct *notification_off_work)
 	touchkey_ldo_on(0);	/* "touch" regulator */
 
 	/* turn off the backlight */
-	status = 2; /* light off */
-	i2c_touchkey_write((u8 *)&status, 1);
+	disable_touchkey_backlights();
 	touchkey_enable = 0;
 	led_on = 0;
 	notification_count = 0;
@@ -666,7 +658,6 @@ static ssize_t notification_enabled_write( struct device *dev, struct device_att
 static ssize_t led_status_write( struct device *dev, struct device_attribute *attr, const char *buf, size_t size )
 {
 	unsigned int data;
-	int status;
 
 	if(sscanf(buf,"%u\n", &data ) == 1) {
 
@@ -686,10 +677,7 @@ static ssize_t led_status_write( struct device *dev, struct device_attribute *at
 					touchkey_enable = 1;
 				}
 
-				/* enable the backlight */
-				change_touch_key_led_voltage(led_brightness);
-				status = 1;
-				i2c_touchkey_write((u8 *)&status, 1);
+				enable_touchkey_backlights();
 
 				led_on = 1;
 
@@ -697,6 +685,8 @@ static ssize_t led_status_write( struct device *dev, struct device_attribute *at
 				if (breathing_enabled || blinking_enabled) {
 					reset_breathing();
 					start_breathing_timer();
+				} else {
+					change_touch_key_led_voltage(led_brightness);
 				}
 
 				/* See if a timeout value has been set for the notification */
@@ -730,8 +720,7 @@ static ssize_t led_status_write( struct device *dev, struct device_attribute *at
 			if (led_on) {
 
 				/* turn off the backlight */
-				status = 2; /* light off */
-				i2c_touchkey_write((u8 *)&status, 1);
+				disable_touchkey_backlights();
 				led_on = 0;
 
 				if (!screen_on) {
@@ -975,9 +964,7 @@ static ssize_t blink_control_write( struct device *dev, struct device_attribute 
 	if (data == 1) {
 		bln_blinking_enabled = true;
 		disable_touchkey_backlights();
-	}
-
-	if (data == 0) {
+	} else if (data == 0) {
 		bln_blinking_enabled = false;
 		enable_touchkey_backlights();
 	}
@@ -1085,7 +1072,6 @@ static int sec_touchkey_early_suspend(struct early_suspend *h)
 
 static int sec_touchkey_late_resume(struct early_suspend *h)
 {
-	int status;
 	set_touchkey_debug('R');
 	printk(KERN_DEBUG "[TouchKey] sec_touchkey_late_resume\n");
 
@@ -1130,9 +1116,8 @@ static int sec_touchkey_late_resume(struct early_suspend *h)
 
 	if (led_timeout != BL_ALWAYS_OFF) {
 		/* ensure the light is ON */
+		enable_touchkey_backlights();
 		change_touch_key_led_voltage(led_brightness);
-		status = 1;
-		i2c_touchkey_write((u8 *)&status, 1);
 	}
 
 	/* restart the timer if needed */
@@ -1159,7 +1144,6 @@ static int i2c_touchkey_probe(struct i2c_client *client,
 	unsigned char data;
 	int i;
 	int module_version;
-	int status;
 
 	printk(KERN_DEBUG "[TouchKey] i2c_touchkey_probe\n");
 
@@ -1255,8 +1239,7 @@ static int i2c_touchkey_probe(struct i2c_client *client,
 
 	/* turn off the LED if it is not supposed to be always on */
 	if (led_timeout != BL_ALWAYS_ON) {
-		status = 2;
-		i2c_touchkey_write((u8 *)&status, 1);
+		disable_touchkey_backlights();
 	}
 
 	return 0;
